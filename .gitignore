@@ -71,3 +71,7 @@ logs
 
 .venv
 .claude
+
+*.png
+*.jpg
+*.jpeg

@@ -1,8 +1,9 @@
 from PIL import Image
-import os
 
 
-def pad_image_to_aspect_ratio(img, target_width=None, target_height=None):
+def adjust_aspect_ratio(
+    img: Image.Image, target_width: int = -1, target_height: int = -1
+) -> Image.Image:
     """
     Pad any PIL Image to match a target aspect ratio by adding white padding
 
@@ -13,7 +14,7 @@ def pad_image_to_aspect_ratio(img, target_width=None, target_height=None):
 
     If both target_width and target_height are provided, the image will be padded to that exact size.
     If only one is provided, the other dimension will be calculated to maintain the target aspect ratio.
-    If neither is provided, defaults to square based on the larger dimension (original behavior).
+    If neither is provided, defaults to square based on the larger dimension.
 
     Returns:
         PIL Image object that matches the target aspect ratio
@@ -24,14 +25,14 @@ def pad_image_to_aspect_ratio(img, target_width=None, target_height=None):
         print(f"Processing image (original size: {width}x{height})")
 
         # Determine target dimensions
-        if target_width is None and target_height is None:
+        if target_width is -1 and target_height is -1:
             # Default behavior: make it square based on larger dimension
             target_width = target_height = max(width, height)
-        elif target_width is None:
+        elif target_width is -1:
             # Calculate width based on target height and original aspect ratio
             aspect_ratio = width / height
             target_width = int(target_height * aspect_ratio)
-        elif target_height is None:
+        elif target_height is -1:
             # Calculate height based on target width and original aspect ratio
             aspect_ratio = height / width
             target_height = int(target_width * aspect_ratio)
@@ -73,4 +74,4 @@ def pad_image_to_aspect_ratio(img, target_width=None, target_height=None):
 
     except Exception as e:
         print(f"Error processing image: {str(e)}")
-        return None
+        raise e
