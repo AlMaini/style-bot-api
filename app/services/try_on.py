@@ -5,7 +5,7 @@ from PIL import Image
 from services.clients import get_gemini_client
 
 
-def generate_try_on_image(person: Image.Image, clothes: List[Image.Image]):
+def generate_try_on_image(uid: int, person: Image.Image, clothes: List[Image.Image]):
     # assert uid is int and person is Image.Image and clothes is List[Image.Image]
 
     client = get_gemini_client()
@@ -28,4 +28,4 @@ def generate_try_on_image(person: Image.Image, clothes: List[Image.Image]):
     if image_data is None:
         raise ValueError("No image data received from Gemini API")
 
-    return image_data
+    image_data.save(f"{uid}.png")

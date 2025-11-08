@@ -2,21 +2,17 @@ import requests
 
 
 def test_api():
-    url = "http://localhost:8080/api/try-on"
-    with open("person.jpg", "rb") as p, open("cloth.png", "rb") as c:
+    url = "http://localhost:8080/api/try-on/single-item"
+    with open("person.jpg", "rb") as p, open("clothing.jpg", "rb") as c:
         files = [
             ("images_files", ("person.jpg", p, "image/jpg")),
-            ("images_files", ("cloth.png", c, "image/png")),
+            ("images_files", ("clothing.jpg", c, "image/jpg")),
         ]
         response = requests.post(url, files=files)
 
     # Use the response so the variable is not unused; save output if successful.
     if response.status_code == 200:
-        content_type = response.headers.get("content-type", "")
-        out_name = "result.png"
-        with open(out_name, "wb") as out_f:
-            _ = out_f.write(response.content)
-        print(f"Saved response to {out_name} (Content-Type: {content_type})")
+        print("Request successful:", response.json()["job_id"])
     else:
         print(f"Request failed with status {response.status_code}: {response.text}")
 
