@@ -1,17 +1,43 @@
-from io import BytesIO
-from typing import Any, List
+import asyncio
+import os
 from random import randint
-from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse, Response
-from PIL import Image
-from services.try_on import generate_try_on_image
+from typing import Any, List
 
-jobs = {}
+from fastapi import APIRouter, BackgroundTasks, File, HTTPException, UploadFile
+from services.try_on import generate_try_on_image
+from utils.image_utils import async_save_uploadfile_to_disk, open_images
+from utils.status_utils import add_job
 
 router = APIRouter(prefix="/api/try-on")
 
 
-@router.post("/single-item")
+async def process_try_on_single_outfit(
+    job_id: int, person_path: str, clothing_paths: List[str]
+):
+    loop = asyncio.get_running_loop()
+    all_paths = [person_path] + list(clothing_paths)
+
+    try:
+        # Open images in executor (Pillow work off the event loop)
+        images = await loop.run_in_executor(None, open_images, all_paths)
+        person_img = images[0]
+        clothing_imgs = images[1:]
+
+        await generate_try_on_image(job_id, person_img, clothing_imgs)
+    finally:
+        # Try to remove temporary files; swallow errors
+        for p in all_paths:
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+
+
+async def test_process_try_on_single_outfit(*args, **kwargs):
+    pass
+
+
+@router.post("/single-outfit")
 async def try_on(
     background_tasks: BackgroundTasks,  # No default - comes first
     images_files: List[UploadFile] = File(...),  # Has default - comes last
@@ -20,40 +46,25 @@ async def try_on(
         if not images_files:
             raise HTTPException(status_code=400, detail="No images provided")
 
-        images = []
-        for upload in images_files:
-            img = Image.open(upload.file)
-            images.append(img.convert("RGB"))
+        person_upload = images_files[0]
+        clothing_uploads = images_files[1:]
 
-        person = images[0]
-        clothing = images[1:]
+        # Persist uploads to disk (while request context is active)
+        person_path = await async_save_uploadfile_to_disk(person_upload)
+        clothing_paths = []
+        for f in clothing_uploads:
+            p = await async_save_uploadfile_to_disk(f)
+            clothing_paths.append(p)
 
         job_id = randint(0, 1_000_000)
-        jobs[job_id] = {"status": "pending", "result": None}
+        add_job(job_id, status="pending", result=None)
 
-        # Start background task
-        background_tasks.add_task(generate_try_on_image, job_id, person, clothing)
+        # Schedule background task passing file paths
+        background_tasks.add_task(
+            process_try_on_single_outfit, job_id, person_path, clothing_paths
+        )
 
         return {"job_id": job_id, "status": "pending"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/status/{job_id}")
-async def get_status(job_id: str):
-    if job_id not in jobs:
-        return {"error": "Job not found"}
-    return jobs[job_id]
-
-
-@router.get("/result/{job_id}")
-async def get_result(job_id: str):
-    if job_id not in jobs:
-        return {"error": "Job not found"}
-
-    job = jobs[job_id]
-    if job["status"] != "completed":
-        return {"error": "Job not completed yet"}
-
-    return FileResponse(path=f"{job_id}.png", media_type="image/png")

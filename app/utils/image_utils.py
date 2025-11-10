@@ -1,4 +1,54 @@
+import asyncio
+import os
+import shutil
+import tempfile
+from typing import List
+
+from fastapi import UploadFile
 from PIL import Image
+
+upload_dir = "app/images/"
+
+
+async def async_save_uploadfile_to_disk(upload_file: UploadFile) -> str:
+    """
+    Create a temp file path and copy the UploadFile content to it using a threadpool.
+    Returns the temp file path.
+    """
+    tmp = tempfile.NamedTemporaryFile(
+        delete=False, suffix=".png", prefix="process_image", dir=upload_dir
+    )
+    tmp_path = tmp.name
+    tmp.close()
+
+    def _save_uploadfile_to_disk(upload_file: UploadFile, dest_path: str):
+        """
+        Synchronous function to copy upload_file.file to dest_path.
+        Runs in threadpool to avoid blocking event loop.
+        """
+        # Ensure we're at start
+        try:
+            upload_file.file.seek(0)
+        except Exception:
+            raise ValueError("UploadFile file is not seekable")
+        with open(dest_path, "wb") as dest:
+            shutil.copyfileobj(upload_file.file, dest)
+
+    loop = asyncio.get_running_loop()
+    # Copy in executor to avoid blocking
+    await loop.run_in_executor(None, _save_uploadfile_to_disk, upload_file, tmp_path)
+    return tmp_path
+
+
+def open_images(paths: List[str]) -> List[Image.Image]:
+    """
+    Open and convert images synchronously (to be run in executor).
+    """
+    imgs = []
+    for p in paths:
+        img = Image.open(p)
+        imgs.append(img.convert("RGB"))
+    return imgs
 
 
 def adjust_aspect_ratio(

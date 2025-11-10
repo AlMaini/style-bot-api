@@ -1,12 +1,13 @@
 import os
-from google import genai
-from supabase import create_client, Client
+
 from dotenv import load_dotenv
+from google import genai
+from supabase import Client, create_client
 
 # Load environment variables
 _ = load_dotenv()
 
-editing_model = "gemini-2.5-flash-image-preview"
+editing_model = "gemini-2.5-flash-image"
 analysis_model = "gemini-1.5-flash"
 
 
