@@ -5,17 +5,18 @@ from typing import List
 
 from PIL import Image
 from utils.clients import editing_model, get_gemini_client
+from utils.prompts import try_on_prompt
 from utils.status_utils import job_manager
 
 
 async def generate_try_on_image(
     uid: str, person: Image.Image, clothes: List[Image.Image]
 ):
-    # assert uid is int and person is Image.Image and clothes is List[Image.Image]
+    """Generate a try-on image and update job status."""
 
     client = get_gemini_client()
 
-    prompt = "Generate an image of a person trying on clothes. The person is represented by the first image, and the clothes to try on are represented by the subsequent images. Combine them realistically. Do not alter the identity of the person, including the face, body size etc. Do not add any additional clothing items or accessories."
+    prompt = try_on_prompt
     content = [prompt] + [person] + clothes
 
     response = await asyncio.to_thread(
