@@ -7,6 +7,7 @@ from fastapi import (
     HTTPException,
 )
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from models.auth import LoginResponse, SignupResponse, User
 from pydantic import BaseModel, EmailStr
 from utils.clients import get_supabase_client
 
@@ -14,11 +15,6 @@ router = APIRouter(prefix="/api/auth")
 
 client = get_supabase_client()
 security = HTTPBearer()
-
-
-class User(BaseModel):
-    email: EmailStr
-    password: str
 
 
 async def get_current_user(
@@ -38,7 +34,7 @@ async def get_current_user(
         )
 
 
-@router.post("/login")
+@router.post("/login", response_model=LoginResponse)
 async def login(user: User):
     response = client.auth.sign_in_with_password(
         {"email": user.email, "password": user.password}
@@ -56,7 +52,7 @@ async def login(user: User):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
-@router.post("/signup")
+@router.post("/signup", response_model=SignupResponse)
 async def signup(user: User):
     response = client.auth.sign_up({"email": user.email, "password": user.password})
     if response.user:
