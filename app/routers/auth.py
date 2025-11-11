@@ -8,7 +8,7 @@ from fastapi import (
 )
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
-from services.clients import get_supabase_client
+from utils.clients import get_supabase_client
 
 router = APIRouter(prefix="/api/auth")
 
@@ -64,7 +64,12 @@ async def signup(user: User):
             "message": "User created successfully! Check your email to confirm your account.",
             "user_id": response.user.id,
             "email": response.user.email,
+            # this is so that if email confirmation is not required, we can still return the access token, refresh token, and expires_in
             "access_token": response.session.access_token if response.session else None,
+            "refresh_token": response.session.refresh_token
+            if response.session
+            else None,
+            "expires_in": response.session.expires_in if response.session else None,
         }
     else:
         raise HTTPException(status_code=400, detail="Signup failed")

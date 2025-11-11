@@ -2,7 +2,7 @@ from io import BytesIO
 from typing import List
 
 from PIL import Image
-from services.clients import editing_model, get_gemini_client
+from utils.clients import editing_model, get_gemini_client
 from utils.status_utils import update_job
 
 
