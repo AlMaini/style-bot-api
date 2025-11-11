@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import status, try_on
+from routers import auth, health, status, try_on
 
 app = FastAPI()
 
@@ -19,6 +19,8 @@ app.add_middleware(
 
 app.include_router(try_on.router)
 app.include_router(status.router)
+app.include_router(health.router)
+app.include_router(auth.router)
 
 
 if __name__ == "__main__":

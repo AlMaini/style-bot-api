@@ -1,5 +1,6 @@
-jobs = {}
 from typing import Any
+
+jobs = {}
 
 
 def add_job(job_id: int, status: str = "pending", result: Any = None):
