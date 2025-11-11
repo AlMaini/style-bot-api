@@ -45,7 +45,6 @@ async def try_on(
     user=Depends(get_current_user),
 ):
     if user:
-        print("Authenticated user:", user.id)
         try:
             if not images_files:
                 raise HTTPException(status_code=400, detail="No images provided")

@@ -1,9 +1,29 @@
+import os
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, health, status, try_on
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup
+    yield
+    # delete images in app/images on shutdown
+    folder_path = "app/images"
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith(".png"):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                os.remove(file_path)
+                print(f"Deleted: {filename}")
+            except OSError as e:
+                print(f"Error deleting {filename}: {e}")
+
+
+app = FastAPI(lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(

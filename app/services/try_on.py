@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from io import BytesIO
 from typing import List
@@ -17,7 +18,9 @@ async def generate_try_on_image(
     prompt = "Generate an image of a person trying on clothes. The person is represented by the first image, and the clothes to try on are represented by the subsequent images. Combine them realistically. Do not alter the identity of the person, including the face, body size etc. Do not add any additional clothing items or accessories."
     content = [prompt] + [person] + clothes
 
-    response = client.models.generate_content(model=editing_model, contents=content)
+    response = await asyncio.to_thread(
+        client.models.generate_content, model=editing_model, contents=content
+    )
 
     image_data = None
 
