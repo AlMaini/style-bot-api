@@ -1,19 +1,19 @@
 import asyncio
 import os
-from random import randint
+import uuid
 from typing import Any, List
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from services.try_on import generate_try_on_image
-from utils.auth import verify_user_perms
+from utils.auth import get_current_user
 from utils.image_utils import async_save_uploadfile_to_disk, open_images
-from utils.status_utils import add_job
+from utils.status_utils import job_manager
 
 router = APIRouter(prefix="/api/try-on")
 
 
 async def process_try_on_single_outfit(
-    job_id: int, person_path: str, clothing_paths: List[str]
+    job_id: uuid.UUID, person_path: str, clothing_paths: List[str]
 ):
     loop = asyncio.get_running_loop()
     all_paths = [person_path] + list(clothing_paths)
@@ -24,7 +24,7 @@ async def process_try_on_single_outfit(
         person_img = images[0]
         clothing_imgs = images[1:]
 
-        await generate_try_on_image(job_id, person_img, clothing_imgs)
+        await generate_try_on_image(str(job_id), person_img, clothing_imgs)
     finally:
         # Try to remove temporary files; swallow errors
         for p in all_paths:
@@ -42,9 +42,10 @@ async def test_process_try_on_single_outfit(*args, **kwargs):
 async def try_on(
     background_tasks: BackgroundTasks,
     images_files: List[UploadFile] = File(...),
-    authorization: bool = Depends(verify_user_perms),
+    user=Depends(get_current_user),
 ):
-    if authorization:
+    if user:
+        print("Authenticated user:", user.id)
         try:
             if not images_files:
                 raise HTTPException(status_code=400, detail="No images provided")
@@ -59,8 +60,7 @@ async def try_on(
                 p = await async_save_uploadfile_to_disk(f)
                 clothing_paths.append(p)
 
-            job_id = randint(0, 1_000_000)
-            add_job(job_id, status="pending", result=None)
+            job_id = job_manager.add_job(user_id=user.id, status="pending", result=None)
 
             # Schedule background task passing file paths
             background_tasks.add_task(

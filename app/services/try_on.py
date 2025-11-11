@@ -1,13 +1,14 @@
+import uuid
 from io import BytesIO
 from typing import List
 
 from PIL import Image
 from utils.clients import editing_model, get_gemini_client
-from utils.status_utils import update_job
+from utils.status_utils import job_manager
 
 
 async def generate_try_on_image(
-    uid: int, person: Image.Image, clothes: List[Image.Image]
+    uid: str, person: Image.Image, clothes: List[Image.Image]
 ):
     # assert uid is int and person is Image.Image and clothes is List[Image.Image]
 
@@ -29,4 +30,4 @@ async def generate_try_on_image(
 
     image_path = f"app/images/{uid}.png"
     image_data.save(image_path)
-    update_job(uid, status="completed", result=image_path)
+    job_manager.update_job(uuid.UUID(uid), status="completed", result=image_path)
