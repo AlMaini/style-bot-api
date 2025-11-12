@@ -1,11 +1,6 @@
 from typing import Optional
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    Header,
-    HTTPException,
-)
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from models.auth import LoginResponse, ProfileResponse, SignupResponse, User
 from pydantic import BaseModel, EmailStr
@@ -70,6 +65,72 @@ async def signup(user: User):
         }
     else:
         raise HTTPException(status_code=400, detail="Signup failed")
+
+
+@router.get("/google")
+async def google_login(
+    redirect_to: str = Query(default="http://127.0.0.1:8080/api/auth/callback"),
+):
+    """
+    Initiate Google OAuth login.
+    The redirect_to parameter specifies where to redirect after successful login.
+    """
+    try:
+        # Generate the OAuth URL for Google
+        response = client.auth.sign_in_with_oauth(
+            {
+                "provider": "google",
+                "options": {
+                    "redirect_to": f"{redirect_to}"  # Your frontend callback URL
+                },
+            }
+        )
+
+        return {"url": response.url}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"OAuth initiation failed: {str(e)}"
+        )
+
+
+@router.get("/callback")
+async def auth_callback(
+    code: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    error_description: Optional[str] = Query(None),
+):
+    """
+    Handle OAuth callback from Google.
+    Supabase automatically handles the token exchange.
+    """
+    if error:
+        raise HTTPException(
+            status_code=400, detail=f"OAuth error: {error_description or error}"
+        )
+
+    if not code:
+        raise HTTPException(status_code=400, detail="No authorization code provided")
+
+    try:
+        # Exchange the code for a session
+        response = client.auth.exchange_code_for_session(code)
+
+        if response.session and response.user:
+            return {
+                "message": "Google login successful!",
+                "user_id": response.user.id,
+                "email": response.user.email,
+                "access_token": response.session.access_token,
+                "refresh_token": response.session.refresh_token,
+                "expires_in": response.session.expires_in,
+            }
+        else:
+            raise HTTPException(status_code=401, detail="Failed to create session")
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to exchange code for session: {str(e)}"
+        )
 
 
 @router.get("/profile", response_model=ProfileResponse)
