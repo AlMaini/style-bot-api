@@ -7,9 +7,10 @@ from fastapi import (
     HTTPException,
 )
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from models.auth import LoginResponse, SignupResponse, User
+from models.auth import LoginResponse, ProfileResponse, SignupResponse, User
 from pydantic import BaseModel, EmailStr
 from utils.clients import get_supabase_client
+from utils.database import get_profile_from_db
 
 router = APIRouter(prefix="/api/auth")
 
@@ -71,15 +72,22 @@ async def signup(user: User):
         raise HTTPException(status_code=400, detail="Signup failed")
 
 
-@router.get("/profile")
+@router.get("/profile", response_model=ProfileResponse)
 async def get_profile(current_user=Depends(get_current_user)):
-    user = current_user.user
+    user_id = current_user.user.id
 
-    return {
-        "profile": {
-            "id": user.id,
-            "email": user.email,
-            "created_at": user.created_at,
-            "last_sign_in": user.last_sign_in_at,
-        }
-    }
+    try:
+        profile = await get_profile_from_db(user_id)
+        if profile:
+            return ProfileResponse(
+                email=current_user.user.email,
+                subscription_plan=profile["subscription_plan"],
+                image_limit=profile["image_limit"],
+                image_usage=profile["image_usage"],
+            )
+
+        else:
+            raise ValueError("Profile not found")
+    except Exception as e:
+        print(f"Error checking available usage: {e}")
+        return False

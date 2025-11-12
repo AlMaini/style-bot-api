@@ -24,3 +24,10 @@ class SignupResponse(BaseModel):
     refresh_token: Optional[str] = None
     access_token: Optional[str] = None
     expires_in: Optional[str] = None
+
+
+class ProfileResponse(BaseModel):
+    email: str
+    subscription_plan: str
+    image_limit: int
+    image_usage: int

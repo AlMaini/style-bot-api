@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic_core.core_schema import CustomErrorSchema
 from utils.auth import get_current_user
 from utils.clients import get_supabase_client
-from utils.database import get_profile, update_stripe_id
+from utils.database import get_profile_from_db, update_stripe_id
 
 router = APIRouter(prefix="/api/payments")
 
@@ -24,7 +24,7 @@ async def create_checkout_session(price_id: str, user=Depends(get_current_user))
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized, invalid token")
     try:
-        profile = await get_profile(user.id)
+        profile = await get_profile_from_db(user.id)
         if not profile:
             raise HTTPException(status_code=404, detail="User profile not found")
 
@@ -66,7 +66,7 @@ async def create_portal_session(user=Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Unauthorized, invalid token")
 
     try:
-        profile = await get_profile(user.id)
+        profile = await get_profile_from_db(user.id)
         if not profile:
             raise HTTPException(status_code=404, detail="User profile not found")
 
