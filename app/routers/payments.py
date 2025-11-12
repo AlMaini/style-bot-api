@@ -11,9 +11,10 @@ from utils.database import get_profile, update_stripe_id
 router = APIRouter(prefix="/api/payments")
 
 _ = load_dotenv()
-success_url = "http://127.0.0.1:3000/dashboard"
-cancel_url = "http://127.0.0.1:3000/cancel"
-return_url = "http://127.0.0.1:3000/dashboard"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+success_url = f"{FRONTEND_URL}/dashboard"
+cancel_url = f"{FRONTEND_URL}/cancel"
+return_url = f"{FRONTEND_URL}/dashboard"
 
 stripe.api_key = os.getenv("STRIPE_KEY")
 
