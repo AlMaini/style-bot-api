@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, health, status, try_on
+from routers import auth, health, payments, status, try_on
 
 
 @asynccontextmanager
@@ -41,6 +41,7 @@ app.include_router(try_on.router)
 app.include_router(status.router)
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(payments.router)
 
 
 if __name__ == "__main__":

@@ -75,3 +75,5 @@ logs
 *.png
 *.jpg
 *.jpeg
+
+supabase/
