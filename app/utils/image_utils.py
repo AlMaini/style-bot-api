@@ -2,12 +2,17 @@ import asyncio
 import os
 import shutil
 import tempfile
+import uuid
+from io import BytesIO
 from typing import List
 
 from fastapi import UploadFile
 from PIL import Image
+from utils.clients import get_supabase_client
 
 upload_dir = "app/images/"
+
+image_supabase_client = get_supabase_client()
 
 
 async def async_save_uploadfile_to_disk(upload_file: UploadFile) -> str:
@@ -75,14 +80,14 @@ def adjust_aspect_ratio(
         print(f"Processing image (original size: {width}x{height})")
 
         # Determine target dimensions
-        if target_width is -1 and target_height is -1:
+        if target_width == -1 and target_height == -1:
             # Default behavior: make it square based on larger dimension
             target_width = target_height = max(width, height)
-        elif target_width is -1:
+        elif target_width == -1:
             # Calculate width based on target height and original aspect ratio
             aspect_ratio = width / height
             target_width = int(target_height * aspect_ratio)
-        elif target_height is -1:
+        elif target_height == -1:
             # Calculate height based on target width and original aspect ratio
             aspect_ratio = height / width
             target_height = int(target_width * aspect_ratio)
@@ -125,3 +130,84 @@ def adjust_aspect_ratio(
     except Exception as e:
         print(f"Error processing image: {str(e)}")
         raise e
+
+
+async def upload_image(user_id: str, image: Image.Image) -> str | None:
+    try:
+        # Convert PIL Image to bytes
+        img_byte_arr = BytesIO()
+
+        # Determine format (default to PNG if not available)
+        image_format = image.format if image.format else "PNG"
+
+        # Save image to BytesIO object
+        image.save(img_byte_arr, format=image_format)
+        img_byte_arr.seek(0)  # Reset pointer to beginning
+
+        # Get the bytes
+        contents = img_byte_arr.getvalue()
+
+        filename = f"{uuid.uuid4()}.png"
+
+        # Define storage path (organize by user)
+        file_path = f"{user_id}/{filename}"
+
+        content_type = "image/png"
+
+        # Upload to Supabase Storage
+        response = image_supabase_client.storage.from_("user-images").upload(
+            path=file_path,
+            file=contents,
+            file_options={"content-type": content_type},
+        )
+
+        # For PRIVATE buckets, create a signed URL instead
+        url = image_supabase_client.storage.from_("user-images").create_signed_url(
+            path=file_path,
+            expires_in=3600,  # URL valid for 1 hour (in seconds)
+        )
+
+        return url
+
+    except Exception as e:
+        # Log the error if you have logging set up
+        print(f"Error uploading image for user {user_id}: {str(e)}")
+        return None
+
+
+async def get_user_images(user_id: str) -> List[str]:
+    try:
+        # List all files in the user's directory
+        response = image_supabase_client.storage.from_("user-images").list(path=user_id)
+
+        image_urls = []
+        for file_info in response:
+            file_path = f"{user_id}/{file_info['name']}"
+            url_response = image_supabase_client.storage.from_(
+                "user-images"
+            ).create_signed_url(
+                path=file_path,
+                expires_in=3600,  # URL valid for 1 hour (in seconds)
+            )
+            image_urls.append(url_response["signedURL"])
+
+        return image_urls
+
+    except Exception as e:
+        print(f"Error fetching images for user {user_id}: {str(e)}")
+        return []
+
+
+async def delete_user_image(user_id: str, filename: str) -> bool:
+    try:
+        file_path = f"{user_id}/{filename}"
+        response = image_supabase_client.storage.from_("user-images").remove(
+            [file_path]
+        )
+        if response.get("error"):
+            print(f"Error deleting image {file_path}: {response['error']}")
+            return False
+        return True
+    except Exception as e:
+        print(f"Exception deleting image {file_path}: {str(e)}")
+        return False

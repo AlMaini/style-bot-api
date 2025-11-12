@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, health, payments, status, try_on
+from routers import auth, health, images, payments, status, try_on
 
 
 @asynccontextmanager
@@ -42,7 +42,7 @@ app.include_router(status.router)
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(payments.router)
-
+app.include_router(images.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)

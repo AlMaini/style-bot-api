@@ -9,7 +9,7 @@ from models.status import UpdateJob
 from PIL import Image
 from utils.clients import editing_model, get_gemini_client
 from utils.database import increment_image_usage
-from utils.image_utils import open_images
+from utils.image_utils import open_images, upload_image
 from utils.prompts import try_on_prompt
 from utils.status_utils import job_manager
 
@@ -58,6 +58,7 @@ async def process_try_on_single_outfit(
         job_manager.update_job(
             UpdateJob(job_id=job_id, status="completed", result=image_path)
         )
+        await upload_image(str(user_id), Image.open(image_path))
     finally:
         _ = await increment_image_usage(user_id)
         # Try to remove temporary files; swallow errors
