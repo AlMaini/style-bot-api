@@ -15,11 +15,7 @@ This project is managed using UV. To get started, follow these steps:
    cd drip-drop
    ```
 
-3. Create a .env file with the following content:
-   ```
-   SUPABASE_URL=https://url.com
-   SUPABASE_KEY=secret_key
-   ```
+3. Create a `.env` file with the content as specified in `.env.example`.:
 
 3. Run the application:
    ```
