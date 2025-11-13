@@ -1,4 +1,4 @@
-# drip-drop
+# Style Bot
 Wardrobe Management and Outfit AI assistant
 
 # Setup
