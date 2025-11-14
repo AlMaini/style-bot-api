@@ -113,7 +113,7 @@ async def auth_callback(
 
     try:
         # Exchange the code for a session
-        response = client.auth.exchange_code_for_session(code)
+        response = client.auth.exchange_code_for_session({"auth_code": code})
 
         if response.session and response.user:
             return {
@@ -136,7 +136,7 @@ async def auth_callback(
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(current_user=Depends(get_current_user)):
     user_id = current_user.user.id
-
+    print(f"User ID: {user_id}")
     try:
         profile = await get_profile_from_db(user_id)
         if profile:
@@ -146,9 +146,8 @@ async def get_profile(current_user=Depends(get_current_user)):
                 image_limit=profile["image_limit"],
                 image_usage=profile["image_usage"],
             )
-
         else:
-            raise ValueError("Profile not found")
+            raise HTTPException(status_code=404, detail="Profile not found")
     except Exception as e:
-        print(f"Error checking available usage: {e}")
-        return False
+        print(f"Error fetching profile: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching profile: {str(e)}")
