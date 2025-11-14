@@ -3,6 +3,7 @@ import os
 import stripe
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
+from models.payments import CheckoutSessionRequest
 from pydantic_core.core_schema import CustomErrorSchema
 from utils.auth import get_current_user
 from utils.clients import get_supabase_client
@@ -20,7 +21,9 @@ stripe.api_key = os.getenv("STRIPE_KEY")
 
 
 @router.post("/create-checkout-session")
-async def create_checkout_session(price_id: str, user=Depends(get_current_user)):
+async def create_checkout_session(
+    request: CheckoutSessionRequest, user=Depends(get_current_user)
+):
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized, invalid token")
     try:
@@ -47,7 +50,7 @@ async def create_checkout_session(price_id: str, user=Depends(get_current_user))
             payment_method_types=["card"],
             line_items=[
                 {
-                    "price": price_id,  # This uses the Stripe Price ID directly
+                    "price": request.price_id,  # This uses the Stripe Price ID directly
                     "quantity": 1,
                 },
             ],

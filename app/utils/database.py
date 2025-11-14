@@ -16,7 +16,6 @@ async def get_profile_from_db(user_id: UUID):
             .eq("user_id", str(user_id))
             .execute()
         )
-        print(f"Profile fetch response: {response}")
         if response.data and len(response.data) > 0:
             return response.data[0]
         else:
