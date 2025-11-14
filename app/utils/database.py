@@ -13,10 +13,15 @@ async def get_profile_from_db(user_id: UUID):
         response = (
             supabase_client.table("profiles")
             .select("*")
-            .eq("user_id", user_id)
+            .eq("user_id", str(user_id))
             .execute()
         )
-        return response.data[0]
+        print(f"Profile fetch response: {response}")
+        if response.data and len(response.data) > 0:
+            return response.data[0]
+        else:
+            print(f"No profile found for user_id: {user_id}")
+            return None
     except Exception as e:
         print(f"Error fetching profile: {e}")
         return None
