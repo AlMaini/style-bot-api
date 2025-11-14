@@ -136,7 +136,6 @@ async def auth_callback(
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(current_user=Depends(get_current_user)):
     user_id = current_user.user.id
-    print(f"User ID: {user_id}")
     try:
         profile = await get_profile_from_db(user_id)
         if profile:
