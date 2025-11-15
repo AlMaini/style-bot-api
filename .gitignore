@@ -77,3 +77,4 @@ logs
 *.jpeg
 
 supabase/
+temp.py
