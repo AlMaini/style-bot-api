@@ -319,6 +319,31 @@ Debug endpoint to view all jobs (development only).
 
 ---
 
+#### GET `/api/status/jobs/{user_id}`
+
+Retrieve all job IDs for a specific user.
+
+**Authentication Required:** Yes
+
+**Path Parameters:**
+- `user_id`: UUID of the user
+
+**Authorization:**
+- The authenticated user's token ID must match the requested `user_id`
+
+**Response:** `200 OK`
+```json
+{
+  "job_ids": ["job-uuid-1", "job-uuid-2", "job-uuid-3"]
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` - Invalid or missing token, or token user ID doesn't match requested user ID
+- `404 Not Found` - User ID not found
+
+---
+
 ### Images Endpoints
 
 #### GET `/api/images/`
