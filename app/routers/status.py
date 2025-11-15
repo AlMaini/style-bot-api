@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
 from models.status import ProgressResponse
-from utils.auth import verify_user_perms
+from utils.auth import get_user_id, verify_user_perms
 from utils.status_utils import job_manager
 
 router = APIRouter(prefix="/api/status")
@@ -52,3 +52,16 @@ async def get_result(job_id: UUID, valid=Depends(verify_user_perms)):
 @router.get("/jobs_dict")
 async def get_jobs_dict():
     return {"jobs dict": job_manager.jobs, "users jobs": job_manager.users_jobs}
+
+
+@router.get("/jobs/{user_id}")
+async def get_user_jobs(user_id: str, token_id=Depends(get_user_id)):
+    if not token_id or token_id != user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    try:
+        jobs = job_manager.get_user_jobs(user_id)
+        return {"job_ids": list(jobs)}
+
+    except ValueError:
+        raise HTTPException(status_code=404, detail="User ID not found")

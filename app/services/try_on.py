@@ -39,7 +39,7 @@ async def generate_try_on_image(
 
     image_path = f"app/images/{uid}.png"
     image_data.save(image_path)
-    return image_path
+    return image_data, image_path
 
 
 async def process_try_on_single_outfit(
@@ -54,13 +54,15 @@ async def process_try_on_single_outfit(
         person_img = images[0]
         clothing_imgs = images[1:]
 
-        image_path = await generate_try_on_image(str(job_id), person_img, clothing_imgs)
+        image, image_path = await generate_try_on_image(
+            str(job_id), person_img, clothing_imgs
+        )
         job_manager.update_job(
             UpdateJob(job_id=job_id, status="completed", result=image_path)
         )
-        await upload_image(str(user_id), Image.open(image_path))
-    finally:
+        _ = await upload_image(str(user_id), image)
         _ = await increment_image_usage(user_id)
+    finally:
         # Try to remove temporary files; swallow errors
         for p in all_paths:
             try:
