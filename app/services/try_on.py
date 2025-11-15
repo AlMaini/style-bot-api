@@ -9,7 +9,7 @@ from models.status import UpdateJob
 from PIL import Image
 from utils.clients import editing_model, get_gemini_client
 from utils.database import increment_image_usage
-from utils.image_utils import open_images, upload_image
+from utils.image_utils import adjust_aspect_ratio, open_images, upload_image
 from utils.prompts import try_on_prompt
 from utils.status_utils import job_manager
 
@@ -21,8 +21,17 @@ async def generate_try_on_image(
 
     client = get_gemini_client()
 
+    # adjust all images so that they have the same aspect ratio as the person image
+    target_width, target_height = person.size
+    adjusted_clothes = []
+    for clothing in clothes:
+        adjusted = adjust_aspect_ratio(
+            clothing, target_width=target_width, target_height=target_height
+        )
+        adjusted_clothes.append(adjusted)
+
     prompt = try_on_prompt
-    content = [prompt] + [person] + clothes
+    content = [prompt] + [person] + adjusted_clothes
 
     response = await client.aio.models.generate_content(
         model=editing_model, contents=content
