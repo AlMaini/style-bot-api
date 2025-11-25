@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
-from utils.auth import get_current_user
-from utils.image_utils import get_user_images
+from app.utils.auth import get_current_user
+from app.utils.image_utils import get_user_images
 
 router = APIRouter(prefix="/api/images")
 

@@ -3,9 +3,9 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse
-from models.status import ProgressResponse
-from utils.auth import get_user_id, verify_user_perms
-from utils.status_utils import job_manager
+from app.models.status import ProgressResponse
+from app.utils.auth import get_user_id, verify_user_perms
+from app.utils.status_utils import job_manager
 
 router = APIRouter(prefix="/api/status")
 

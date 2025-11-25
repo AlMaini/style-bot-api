@@ -5,13 +5,13 @@ from io import BytesIO
 from typing import List
 from uuid import UUID
 
-from models.status import UpdateJob
+from app.models.status import UpdateJob
 from PIL import Image
-from utils.clients import editing_model, get_gemini_client
-from utils.database import increment_image_usage
-from utils.image_utils import adjust_aspect_ratio, open_images, upload_image
-from utils.prompts import try_on_prompt
-from utils.status_utils import job_manager
+from app.utils.clients import editing_model, get_gemini_client
+from app.utils.database import increment_image_usage
+from app.utils.image_utils import adjust_aspect_ratio, open_images, upload_image
+from app.utils.prompts import try_on_prompt
+from app.utils.status_utils import job_manager
 
 
 async def generate_try_on_image(

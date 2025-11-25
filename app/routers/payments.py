@@ -3,11 +3,11 @@ import os
 import stripe
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException
-from models.payments import CheckoutSessionRequest
+from app.models.payments import CheckoutSessionRequest
 from pydantic_core.core_schema import CustomErrorSchema
-from utils.auth import get_current_user
-from utils.clients import get_supabase_client
-from utils.database import get_profile_from_db, update_stripe_id
+from app.utils.auth import get_current_user
+from app.utils.clients import get_supabase_client
+from app.utils.database import get_profile_from_db, update_stripe_id
 
 router = APIRouter(prefix="/api/payments")
 

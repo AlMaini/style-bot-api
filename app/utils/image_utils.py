@@ -8,7 +8,7 @@ from typing import List
 
 from fastapi import UploadFile
 from PIL import Image
-from utils.clients import get_supabase_client
+from app.utils.clients import get_supabase_client
 
 upload_dir = "app/images/"
 

@@ -2,10 +2,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from models.auth import LoginResponse, ProfileResponse, SignupResponse, User
+from app.models.auth import LoginResponse, ProfileResponse, SignupResponse, User
 from pydantic import BaseModel, EmailStr
-from utils.clients import get_supabase_client
-from utils.database import get_profile_from_db
+from app.utils.clients import get_supabase_client
+from app.utils.database import get_profile_from_db
 
 router = APIRouter(prefix="/api/auth")
 

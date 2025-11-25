@@ -2,7 +2,7 @@ import uuid
 from collections import deque
 from typing import Any, Dict, Optional
 
-from models.status import AddJob, Job, UpdateJob
+from app.models.status import AddJob, Job, UpdateJob
 
 
 class JobManager:
