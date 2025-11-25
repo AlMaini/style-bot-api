@@ -16,14 +16,15 @@ async def lifespan(app: FastAPI):
     yield
     # delete images in app/images on shutdown
     folder_path = "app/images"
-    for filename in os.listdir(folder_path):
-        if filename.lower().endswith(".png"):
-            file_path = os.path.join(folder_path, filename)
-            try:
-                os.remove(file_path)
-                print(f"Deleted: {filename}")
-            except OSError as e:
-                print(f"Error deleting {filename}: {e}")
+    if os.path.exists(folder_path):
+        for filename in os.listdir(folder_path):
+            if filename.lower().endswith(".png"):
+                file_path = os.path.join(folder_path, filename)
+                try:
+                    os.remove(file_path)
+                    print(f"Deleted: {filename}")
+                except OSError as e:
+                    print(f"Error deleting {filename}: {e}")
 
 
 app = FastAPI(lifespan=lifespan)
