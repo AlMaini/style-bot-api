@@ -10,7 +10,7 @@ from fastapi import UploadFile
 from PIL import Image
 from app.utils.clients import get_supabase_client
 
-upload_dir = "app/images/"
+upload_dir = tempfile.gettempdir()
 
 image_supabase_client = get_supabase_client()
 

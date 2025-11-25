@@ -1,5 +1,6 @@
 import asyncio
 import os
+import tempfile
 import uuid
 from io import BytesIO
 from typing import List
@@ -46,7 +47,7 @@ async def generate_try_on_image(
     if image_data is None:
         raise ValueError("No image data received from Gemini API")
 
-    image_path = f"app/images/{uid}.png"
+    image_path = os.path.join(tempfile.gettempdir(), f"{uid}.png")
     image_data.save(image_path)
     return image_data, image_path
 
